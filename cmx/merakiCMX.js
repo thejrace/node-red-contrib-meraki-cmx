@@ -21,7 +21,7 @@ module.exports = function (RED) {
       RED.nodes.createNode(this,config);
       //console.log('merakiCMXsettings config',config);
   }
-    
+
   // Settings
   RED.nodes.registerType("meraki-cmx-settings",merakiCMXsettings,{
     credentials: {
@@ -35,7 +35,7 @@ module.exports = function (RED) {
   function merakiCMX(config) {
 
     RED.nodes.createNode(this,config);
-    
+
     //console.log('merakiCMX config '+JSON.stringify(config, null, 3));
 
     if (!config.url) {
@@ -72,7 +72,7 @@ module.exports = function (RED) {
             }
           }
         }
-        
+
     });
 
 
@@ -84,11 +84,11 @@ module.exports = function (RED) {
     //console.log("DEBUGGING node ",node);
     console.log('cmxServer url: '+node.url);
     console.log('cmxServer validator: '+node.settings.credentials.validator);
-    
+
     node.status({fill:"yellow",shape:"dot",text:"waiting for first contact"});
 
     var data = {};
-    
+
     RED.httpNode.get(node.url, function(req, res){
       //console.log("Get request DEBUGGING req: ",req);
       console.log("Get request DEBUGGING req.query: ",req.query);
@@ -119,25 +119,25 @@ module.exports = function (RED) {
           }
 
 
-          if(req.body.version != "2.0"){
-            console.log("Meraki CMX: Invalid version. Expecting 2.0 but received ",req.body.version);
-            node.status({fill:"red",shape:"dot",text:"invalid API version: "+req.body.version});
-            setTimeout(function(){
-              node.status({fill:"green",shape:"dot",text:"listening"});
-            }, 5000);
-            res.sendStatus(500);
-            data.payload = node.settings.credentials.validator;
-            var status = {};
-            status.topic = "version";
-            status.payload = "incorrect version";
-            status.supportedVersion = "2.0";
-            status.version = req.body.version;
-            status.remoteAddress = req.connection.remoteAddress;
-            status.statusCode = 500; // server error
-            node.send([null, status]);
-            res.end();
-            return null;
-          }       
+          // if(req.body.version != "2.0"){
+          //   console.log("Meraki CMX: Invalid version. Expecting 2.0 but received ",req.body.version);
+          //   node.status({fill:"red",shape:"dot",text:"invalid API version: "+req.body.version});
+          //   setTimeout(function(){
+          //     node.status({fill:"green",shape:"dot",text:"listening"});
+          //   }, 5000);
+          //   res.sendStatus(500);
+          //   data.payload = node.settings.credentials.validator;
+          //   var status = {};
+          //   status.topic = "version";
+          //   status.payload = "incorrect version";
+          //   status.supportedVersion = "2.0";
+          //   status.version = req.body.version;
+          //   status.remoteAddress = req.connection.remoteAddress;
+          //   status.statusCode = 500; // server error
+          //   node.send([null, status]);
+          //   res.end();
+          //   return null;
+          // }
 
           // Check Secret
           if (req.body.secret != node.settings.credentials.secret) {
@@ -154,7 +154,7 @@ module.exports = function (RED) {
             status.remoteAddress = req.connection.remoteAddress;
             status.statusCode = 401;
             node.send([null, status]);
-            res.end();      
+            res.end();
             return null
           }else{
             // Secret verified
@@ -163,7 +163,7 @@ module.exports = function (RED) {
             setTimeout(function(){
               node.status({fill:"green",shape:"dot",text:"listening"});
             }, 5000);
-            var status = {};     
+            var status = {};
             status.topic = "secret";
             status.payload = "secret verified";
             status.secret = req.body.secret;
@@ -186,7 +186,7 @@ module.exports = function (RED) {
             status.statusCode = 200;
             data.payload = req.body;
             res.sendStatus(200);
-            node.send([data, null]);      
+            node.send([data, null]);
           }else{
             // discarding data as it does not match the expected radio type
             console.log("discarding radio type ",req.body.type);
@@ -200,19 +200,19 @@ module.exports = function (RED) {
             status.supportedType = node.radioType;
             status.type = req.body.type;
             status.remoteAddress = req.connection.remoteAddress;
-            status.statusCode = 200; // OK 
+            status.statusCode = 200; // OK
             res.sendStatus(200); //respond to client with status code
             node.send([null, status]);
             res.end();
             return null
-          }     
-         
+          }
+
        } catch (e) {
         // An error has occured
         console.log("Error. Invalid POST from " + req.connection.remoteAddress);
         console.log(e);
         node.status({fill:"red",shape:"dot",text:"invalid post"});
-        res.sendStatus(500); // Server Error    
+        res.sendStatus(500); // Server Error
         node.error("Invalid POST req data from " + req.connection.remoteAddress, req);
         var status = {};
         status.topic = "error";
@@ -221,7 +221,7 @@ module.exports = function (RED) {
         status.error = e;
         status.data = req;
         status.statusCode = 500;
-        node.send([null, status]); 
+        node.send([null, status]);
         res.send(req);
         res.end();
          return null
